@@ -74,7 +74,7 @@ POST /api/admin/test-notification        发送测试通知
 
 ## 本地开发
 
-前置：Node ≥ 20。
+前置：Node ≥ 22（冒烟测试 `scripts/smoke.mjs` 用 `node:sqlite`，需要 Node 22+）。
 
 ```bash
 npm install
