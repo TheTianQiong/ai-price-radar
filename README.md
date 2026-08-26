@@ -81,7 +81,8 @@ npm install
 # 复制敏感变量示例（本地测试 trigger / 管理后台需要）
 cp .dev.vars.example .dev.vars   # Windows: copy .dev.vars.example .dev.vars，然后填值
 npx wrangler login                      # 登录 Cloudflare（部署前需要）
-npx wrangler d1 create ai-price-radar-db   # 建远程 D1 库，把返回的 database_id 填入 wrangler.jsonc
+npx wrangler d1 create ai-price-radar-db   # 建远程 D1 库，记下输出的 database_id
+export D1_DATABASE_ID="<database_id>"   # PowerShell: $env:D1_DATABASE_ID="<database_id>"（供本地 wrangler 命令解析配置）
 npx wrangler d1 migrations apply ai-price-radar-db --local
 npm run dev                              # 启动本地开发（wrangler dev --test-scheduled）
 ```
@@ -117,36 +118,40 @@ CI 验证（npm run check:scrapers + npm run smoke + wrangler 配置校验）
 
 ### 一次性准备
 
-**1. 本地建 D1 库**（只需一次），把返回的 `database_id` 填入 `wrangler.jsonc`：
-
-```bash
-npx wrangler login
-npx wrangler d1 create ai-price-radar-db
-```
-
-**2. 在 GitHub 创建仓库并推送**（已配置好 git 与本仓库文件）：
+**1. 在 GitHub 创建仓库并推送**（已配置好 git 与本仓库文件）：
 
 ```bash
 gh auth login                                        # 首次登录 GitHub
 gh repo create ai-price-radar --public --source . --push
 ```
 
-**3. 在 GitHub 仓库添加 4 个 Actions Secrets**（Settings → Secrets and variables → Actions → New repository secret）：
+**2. 本地建 D1 库**（只需一次），拿到 `database_id`：
+
+```bash
+npx wrangler login
+npx wrangler d1 create ai-price-radar-db   # 输出里的 database_id 类似 1a2b3c4d-...
+```
+
+`database_id` **不写进仓库**（避免公开泄露）：`wrangler.jsonc` 里是 `${D1_DATABASE_ID}`，由环境变量提供。CI 里把它放进仓库 Secret。
+
+**3. 在 GitHub 仓库添加 5 个 Actions Secrets**（Settings → Secrets and variables → Actions → New repository secret）：
 
 | Secret | 获取方式 |
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard → My Profile → API Tokens → Create Token，权限勾选 **Workers Scripts: Edit** 和 **D1: Edit**，区域选 All zones |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard 首页右下角 Account ID |
+| `D1_DATABASE_ID` | 上面 `wrangler d1 create` 输出的 database_id |
 | `TRIGGER_SECRET` | 任意长随机串，用于 `POST /api/trigger` 鉴权 |
 | `ADMIN_PASSWORD` | 管理后台 `/admin` 登录密码 |
 
 之后每次 push 到 `main` 会自动部署；也可以在 Actions 页面点 **Run workflow** 手动触发。
 
-> 注意：首次 push 前 `wrangler.jsonc` 里的 `database_id` 若还是 `REPLACE_WITH_D1_DATABASE_ID` 占位符，CI 会报错并提示你补上（见上面的第 1 步）。
+> 注意：`database_id` 通过 `${D1_DATABASE_ID}` 从环境变量读取（本地开发需先 `export D1_DATABASE_ID=<uuid>`；PowerShell 用 `$env:D1_DATABASE_ID="<uuid>"`）。CI 里若没配 `D1_DATABASE_ID` secret，部署会报错并提示。
 
 ### 手动部署（不依赖 GitHub Actions）
 
 ```bash
+export D1_DATABASE_ID="<database_id>"    # PowerShell: $env:D1_DATABASE_ID="<database_id>"
 npx wrangler d1 migrations apply ai-price-radar-db --remote   # 生产库建表
 npx wrangler deploy                                            # 部署 Worker（自动带上 cron 与 assets）
 echo "<你的TRIGGER_SECRET>" | npx wrangler secret put TRIGGER_SECRET

@@ -41,8 +41,10 @@
     {
       "binding": "DB",
       "database_name": "ai-price-radar-db",
-      // 运行 `npx wrangler d1 create ai-price-radar-db` 后把生成的 database_id 填入
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      // database_id 从环境变量读取（不写进仓库，避免公开泄露）。
+      // 本地：先 `export D1_DATABASE_ID=<uuid>`（PowerShell: $env:D1_DATABASE_ID="<uuid>"）
+      // CI：仓库 Secret 里的 D1_DATABASE_ID（由 wrangler d1 create 输出的 database_id 提供）
+      "database_id": "${D1_DATABASE_ID}",
       "migrations_dir": "migrations"
     }
   ]

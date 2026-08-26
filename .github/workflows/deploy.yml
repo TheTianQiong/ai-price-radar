@@ -41,16 +41,15 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      - name: 检查 D1 database_id 已配置
+      - name: 检查 D1_DATABASE_ID secret 已配置
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
         run: |
-          if grep -q "REPLACE_WITH_D1_DATABASE_ID" wrangler.jsonc; then
-            echo "::error::wrangler.jsonc 的 database_id 还是占位符。请先在本地执行："
+          if [ -z "$D1_DATABASE_ID" ]; then
+            echo "::error::缺少 D1_DATABASE_ID secret。请先在本地执行："
             echo "  npx wrangler login"
             echo "  npx wrangler d1 create ai-price-radar-db"
-            echo "并把返回的 database_id 填入 wrangler.jsonc 后提交。"
+            echo "把输出的 database_id 作为仓库 Secret D1_DATABASE_ID（README 有步骤）。"
             exit 1
           fi
 
@@ -58,12 +57,14 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
         run: npx wrangler d1 migrations apply ai-price-radar-db --remote
 
       - name: 部署 Worker（含 cron 与静态资源）
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
         run: npx wrangler deploy
 
       # 敏感变量用 Worker Secrets 注入（不写入仓库），未配置则跳过
