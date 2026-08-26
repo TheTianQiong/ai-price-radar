@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 价格雷达 · 主流大模型 API 价格趋势</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script>
+    // ECharts 多 CDN 回退加载（jsdelivr -> npmmirror）
+    (function () {
+      var cdns = [
+        'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js',
+        'https://registry.npmmirror.com/echarts/5.5.1/files/dist/echarts.min.js',
+      ];
+      function load(i) {
+        if (i >= cdns.length) { console.error('ECharts 加载失败'); return; }
+        var s = document.createElement('script');
+        s.src = cdns[i];
+        s.onerror = function () { load(i + 1); };
+        document.head.appendChild(s);
+      }
+      load(0);
+    })();
+  </script>
+</head>
+<body>
+  <header>
+    <h1>⚡ AI 价格雷达</h1>
+    <p class="subtitle">每天定时从各厂商官方定价页抓取，展示主流大模型 API 价格明细与趋势</p>
+    <div class="meta" id="metaBar">加载中…</div>
+    <div id="alertBanner" class="alert-banner hidden"></div>
+  </header>
+
+  <main>
+    <section class="controls">
+      <div class="control-group">
+        <span class="label">币种</span>
+        <div class="segmented" id="currencyToggle">
+          <button data-cur="usd" class="active">USD</button>
+          <button data-cur="cny">CNY</button>
+        </div>
+        <span class="fxnote" id="fxNote"></span>
+      </div>
+
+      <div class="control-group">
+        <span class="label">趋势天数</span>
+        <select id="daysSelect">
+          <option value="30">近 30 天</option>
+          <option value="90" selected>近 90 天</option>
+          <option value="180">近 180 天</option>
+          <option value="9999">全部</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label class="check"><input type="checkbox" id="logScale" /> 对数坐标（价格跨度大时建议开启）</label>
+      </div>
+    </section>
+
+    <section class="models">
+      <div class="models-head">
+        <span class="label">趋势对比的模型（点击切换）</span>
+        <button id="selectAllBtn" class="ghost">全选</button>
+        <button id="selectNoneBtn" class="ghost">清空</button>
+        <span id="selectedCount" class="count"></span>
+      </div>
+      <div id="modelCheckbox" class="model-grid"><!-- JS 生成 --></div>
+    </section>
+
+    <section>
+      <div id="chart" style="width:100%;height:480px;"></div>
+    </section>
+
+    <section class="table-wrap">
+      <h2>最新价格明细</h2>
+      <div id="latestTable"><!-- JS 生成 --></div>
+    </section>
+
+    <section class="fetch-status">
+      <h2>抓取状态</h2>
+      <div id="fetchStatus"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>数据来源为各厂商官方定价页面，每日抓取归档。人民币↔美元为固定汇率换算，仅供对比参考。</p>
+    <p class="muted"><a href="/admin">管理后台 →</a></p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

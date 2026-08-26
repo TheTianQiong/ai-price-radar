@@ -1,0 +1,49 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ai-price-radar",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // 每天 00:15 UTC = 北京时间 08:15 抓取一次
+  "triggers": {
+    "crons": ["15 0 * * *"]
+  },
+  // 静态站点由 assets 托管，/api/* 等未命中静态文件的请求进入 Worker
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "none"
+  },
+  "vars": {
+    // 固定汇率，抓取时完成 USD<->CNY 双币换算并落库（历史数据不回溯）
+    "USD_TO_CNY": 7.15,
+    "FETCH_TIMEOUT_MS": 15000,
+    "FETCH_RETRIES": 1,
+    "SCRAPE_PROVIDERS": "anthropic,openai,gemini,deepseek,kimi,qwen,glm",
+    // 敏感变量（TRIGGER_SECRET、ADMIN_PASSWORD）不写在配置里：
+    // 生产环境用 `wrangler secret put` 注入（GitHub Actions 已配置），本地用 .dev.vars
+    // 抓取失败/疑似改版时的告警 webhook（钉钉/企业微信/Slack/通用机器人）。
+    // 也可在管理后台「通知设置」里修改，留空则不告警。例：钉钉 https://oapi.dingtalk.com/robot/send?access_token=xxx
+    "ALERT_WEBHOOK_URL": "",
+    // 邮件通知默认值（可在管理后台「通知设置」里修改，无需改代码）
+    "EMAIL_SMTP_HOST": "",
+    "EMAIL_SMTP_PORT": "587",
+    "EMAIL_SMTP_USER": "",
+    "EMAIL_SMTP_PASS": "",
+    "EMAIL_SMTP_TLS": "starttls",
+    "EMAIL_FROM": "",
+    "EMAIL_TO": "",
+    "EMAIL_API_URL": "",
+    "EMAIL_API_KEY": "",
+    // RSS 订阅源里展示的站点根地址（可选，留空则用相对地址）
+    "APP_BASE_URL": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ai-price-radar-db",
+      // 运行 `npx wrangler d1 create ai-price-radar-db` 后把生成的 database_id 填入
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

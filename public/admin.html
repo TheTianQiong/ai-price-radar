@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 价格雷达 · 管理后台</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .login-box { max-width: 360px; margin: 60px auto; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 28px; }
+    .login-box h2 { margin-top: 0; }
+    .login-box input { width: 100%; padding: 10px; margin-bottom: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); }
+    .login-box button { width: 100%; padding: 10px; }
+    .tabs { display: flex; gap: 8px; margin: 12px 0 18px; flex-wrap: wrap; }
+    .tabs button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; }
+    .tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .hidden { display: none !important; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .field { display: flex; flex-direction: column; gap: 4px; margin: 8px 12px 8px 0; }
+    .field label { font-size: 12px; color: var(--muted); }
+    .field input { min-width: 260px; padding: 7px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 13px; }
+    .field.wide input { min-width: 420px; }
+    .btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 13px; }
+    .btn.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+    .btn.danger { background: #b34040; }
+    .err { color: var(--err); font-size: 13px; }
+    .ok { color: var(--ok); font-size: 13px; }
+    .result-box { background: var(--panel-2); border-radius: 8px; padding: 10px; font-size: 12px; font-family: ui-monospace, monospace; white-space: pre-wrap; max-height: 260px; overflow: auto; }
+    .status-pill { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+    .status-pill.ok { background: rgba(52,201,142,.15); color: var(--ok); }
+    .status-pill.partial { background: rgba(255,176,32,.15); color: #ffb020; }
+    .status-pill.error { background: rgba(255,93,93,.15); color: var(--err); }
+    .status-pill.none { background: var(--panel-2); color: var(--muted); }
+    table.admin-table td { vertical-align: top; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .mini-btn { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 3px 9px; cursor: pointer; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚙️ AI 价格雷达 · 管理后台</h1>
+    <div class="meta"><a href="/">← 返回价格首页</a> · 管理后台用于手动抓取、排查解析异常、配置通知</div>
+  </header>
+  <main>
+    <section id="loginView" class="login-box">
+      <h2>管理登录</h2>
+      <input type="password" id="pwInput" placeholder="管理员密码" autocomplete="current-password" />
+      <button class="btn" id="loginBtn">登录</button>
+      <p class="muted" id="loginMsg"></p>
+    </section>
+
+    <section id="mainView" class="hidden">
+      <nav class="tabs">
+        <button data-tab="overview" class="active">概览</button>
+        <button data-tab="scrape">抓取</button>
+        <button data-tab="settings">通知设置</button>
+        <button data-tab="logs">日志</button>
+        <button class="ghost" id="logoutBtn" style="margin-left:auto;">退出</button>
+      </nav>
+
+      <!-- 概览 -->
+      <div id="tab-overview" class="tab">
+        <div class="card">
+          <div class="row">
+            <span class="label">数据总行数：<b id="ovTotalRows">-</b></span>
+            <span class="muted" id="ovGeneratedAt"></span>
+            <button class="btn secondary" id="ovRefresh" style="margin-left:auto;">刷新</button>
+          </div>
+        </div>
+        <div class="card">
+          <table class="admin-table">
+            <thead><tr><th>厂商</th><th>状态</th><th>模型数</th><th>最近抓取</th><th>错误/提示</th><th></th></tr></thead>
+            <tbody id="ovBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 抓取 -->
+      <div id="tab-scrape" class="tab hidden">
+        <div class="card">
+          <div class="row">
+            <button class="btn" id="scrapeAll">立即抓取全部厂商</button>
+            <span class="muted">会真实访问各官方定价页，约需 10~30 秒</span>
+          </div>
+          <div class="result-box hidden" id="scrapeResult"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">单厂商排查</h3>
+          <p class="muted">页面改版导致抓取失败时，可单独重跑某厂商验证解析器。</p>
+          <div class="result-box hidden" id="runResult"></div>
+        </div>
+      </div>
+
+      <!-- 通知设置 -->
+      <div id="tab-settings" class="tab hidden">
+        <div class="card">
+          <h3 style="margin-top:0;">Webhook（钉钉 / 企业微信 / Slack / 通用机器人）</h3>
+          <div class="field wide"><label>Webhook URL（留空则不推送）</label><input id="set-webhookUrl" placeholder="https://oapi.dingtalk.com/robot/send?access_token=..." /></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">邮件 · SMTP</h3>
+          <div class="row">
+            <div class="field"><label>SMTP 主机</label><input id="set-smtpHost" placeholder="smtp.qq.com" /></div>
+            <div class="field"><label>端口</label><input id="set-smtpPort" placeholder="587" /></div>
+            <div class="field"><label>TLS 模式</label><input id="set-smtpTls" placeholder="starttls / none" /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>SMTP 用户名</label><input id="set-smtpUser" /></div>
+            <div class="field"><label>SMTP 密码 / 授权码</label><input id="set-smtpPass" type="password" /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>发件人（From）</label><input id="set-from" placeholder="noreply@example.com" /></div>
+            <div class="field"><label>收件人（逗号分隔）</label><input id="set-to" placeholder="you@example.com, admin@example.com" /></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">邮件 · HTTP API（可选，免费套餐可用：Resend / Mailgun 等）</h3>
+          <div class="row">
+            <div class="field wide"><label>API URL</label><input id="set-apiUrl" placeholder="https://api.resend.com/emails" /></div>
+            <div class="field wide"><label>API Key</label><input id="set-apiKey" type="password" /></div>
+          </div>
+          <p class="muted">配置了 SMTP 主机时优先用 SMTP；SMTP 失败或未配置时用 HTTP API。</p>
+        </div>
+        <div class="row">
+          <button class="btn" id="saveSettings">保存设置</button>
+          <button class="btn secondary" id="testNotify">发送测试通知</button>
+          <span class="muted" id="settingsMsg"></span>
+        </div>
+      </div>
+
+      <!-- 日志 -->
+      <div id="tab-logs" class="tab hidden">
+        <div class="card">
+          <div class="row">
+            <span class="label">最近抓取日志</span>
+            <button class="btn secondary" id="logsRefresh" style="margin-left:auto;">刷新</button>
+          </div>
+          <table class="admin-table">
+            <thead><tr><th>时间</th><th>厂商</th><th>状态</th><th>模型数</th><th>耗时(ms)</th><th>错误/提示</th></tr></thead>
+            <tbody id="logsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="/admin.js"></script>
+</body>
+</html>

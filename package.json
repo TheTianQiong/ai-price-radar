@@ -1,0 +1,17 @@
+{
+  "name": "ai-price-radar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "主流 AI 模型价格雷达：每天从各厂商官方定价页抓取价格，网站表格 + 折线趋势展示（Cloudflare Workers + D1）",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "check:scrapers": "node scripts/check-scrapers.mjs",
+    "migrate:local": "wrangler d1 migrations apply ai-price-radar-db --local",
+    "migrate:remote": "wrangler d1 migrations apply ai-price-radar-db --remote"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

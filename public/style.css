@@ -1,0 +1,98 @@
+:root {
+  --bg: #0f1420;
+  --panel: #171e2e;
+  --panel-2: #1e2740;
+  --line: #2a3550;
+  --text: #e6ebf5;
+  --muted: #93a0bd;
+  --accent: #4f8cff;
+  --ok: #34c98e;
+  --err: #ff5d5d;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+header { padding: 20px 24px 4px; max-width: 1200px; margin: 0 auto; }
+h1 { margin: 0; font-size: 26px; }
+.subtitle { color: var(--muted); margin: 4px 0 10px; font-size: 14px; }
+.meta { color: var(--muted); font-size: 13px; }
+main { max-width: 1200px; margin: 0 auto; padding: 12px 24px 40px; }
+footer { max-width: 1200px; margin: 0 auto; padding: 0 24px 30px; color: var(--muted); font-size: 12px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; padding: 12px 0; }
+.control-group { display: flex; align-items: center; gap: 8px; }
+.label { color: var(--muted); font-size: 13px; }
+.fxnote { color: var(--muted); font-size: 12px; }
+.segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.segmented button {
+  background: var(--panel);
+  color: var(--text);
+  border: none;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.segmented button.active { background: var(--accent); color: #fff; }
+select, button.ghost {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.check { color: var(--text); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+
+.models { padding: 8px 0 12px; }
+.models-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.count { color: var(--muted); font-size: 12px; }
+.model-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.model-group { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--panel); }
+.model-group legend { font-size: 13px; color: var(--muted); padding: 0 6px; }
+.model-group .cur { color: var(--accent); font-size: 11px; }
+.model-item { display: inline-flex; align-items: center; gap: 5px; margin: 3px 10px 3px 0; font-size: 12px; cursor: pointer; }
+.model-item input { accent-color: var(--accent); }
+.model-item .free { font-size: 10px; }
+
+.table-wrap { padding-top: 8px; }
+.table-wrap h2, .fetch-status h2 { font-size: 16px; margin: 18px 0 8px; }
+.provider-block { margin-bottom: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.provider-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.provider-name { font-weight: 600; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--panel-2); color: var(--muted); }
+.badge.cur { color: var(--accent); }
+.badge.free { color: var(--ok); background: rgba(52, 201, 142, 0.12); }
+.badge.status.ok { color: var(--ok); }
+.badge.status.error, .badge.status.partial { color: var(--err); }
+.badge.time { color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 7px 14px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: none; }
+td.num { font-variant-numeric: tabular-nums; }
+.free-txt { color: var(--ok); }
+.empty { color: var(--muted); padding: 20px; }
+
+.status-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.status-list li { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.ok { background: var(--ok); }
+.dot.partial { background: #ffb020; }
+.dot.err { background: var(--err); }
+
+.alert-banner {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 93, 93, 0.12);
+  border: 1px solid rgba(255, 93, 93, 0.5);
+  color: #ffb4b4;
+  font-size: 13px;
+}
+.alert-banner.hidden { display: none; }
