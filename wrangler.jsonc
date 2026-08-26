@@ -41,9 +41,8 @@
     {
       "binding": "DB",
       "database_name": "ai-price-radar-db",
-      // database_id 从环境变量读取（不写进仓库，避免公开泄露）。
-      // 本地：先 `export D1_DATABASE_ID=<uuid>`（PowerShell: $env:D1_DATABASE_ID="<uuid>"）
-      // CI：仓库 Secret 里的 D1_DATABASE_ID（由 wrangler d1 create 输出的 database_id 提供）
+      // database_id 用占位符（不写进仓库，避免公开泄露）。wrangler 不解析 ${}，
+      // 由 CI（.github/workflows/deploy.yml）在部署前用 sed 替换为真实值；本地 --local 开发不需要真实 ID。
       "database_id": "${D1_DATABASE_ID}",
       "migrations_dir": "migrations"
     }

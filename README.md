@@ -81,9 +81,8 @@ npm install
 # 复制敏感变量示例（本地测试 trigger / 管理后台需要）
 cp .dev.vars.example .dev.vars   # Windows: copy .dev.vars.example .dev.vars，然后填值
 npx wrangler login                      # 登录 Cloudflare（部署前需要）
-npx wrangler d1 create ai-price-radar-db   # 建远程 D1 库，记下输出的 database_id
-export D1_DATABASE_ID="<database_id>"   # PowerShell: $env:D1_DATABASE_ID="<database_id>"（供本地 wrangler 命令解析配置）
-npx wrangler d1 migrations apply ai-price-radar-db --local
+npx wrangler d1 create ai-price-radar-db   # 建远程 D1 库，记下输出的 database_id（用于 CI Secret）
+npx wrangler d1 migrations apply ai-price-radar-db --local   # 本地模拟库建表（不需要真实 ID）
 npm run dev                              # 启动本地开发（wrangler dev --test-scheduled）
 ```
 
@@ -146,17 +145,21 @@ npx wrangler d1 create ai-price-radar-db   # 输出里的 database_id 类似 1a2
 
 之后每次 push 到 `main` 会自动部署；也可以在 Actions 页面点 **Run workflow** 手动触发。
 
-> 注意：`database_id` 通过 `${D1_DATABASE_ID}` 从环境变量读取（本地开发需先 `export D1_DATABASE_ID=<uuid>`；PowerShell 用 `$env:D1_DATABASE_ID="<uuid>"`）。CI 里若没配 `D1_DATABASE_ID` secret，部署会报错并提示。
+> 说明：`database_id` 用占位符 `${D1_DATABASE_ID}` 提交，**真实 ID 只存在 `D1_DATABASE_ID` secret 里**。wrangler 不解析配置里的 `${}`，所以 CI 在部署前会先用 `sed` 把占位符替换成 secret 的真实值（只改 CI 工作区副本，不会提交回仓库）。本地 `--local` 开发不需要真实 ID。
 
 ### 手动部署（不依赖 GitHub Actions）
 
 ```bash
-export D1_DATABASE_ID="<database_id>"    # PowerShell: $env:D1_DATABASE_ID="<database_id>"
+# 先用真实 database_id 替换配置占位符（之后 git checkout 还原，避免提交真实 ID）
+sed -i "s|\${D1_DATABASE_ID}|<database_id>|g" wrangler.jsonc
 npx wrangler d1 migrations apply ai-price-radar-db --remote   # 生产库建表
 npx wrangler deploy                                            # 部署 Worker（自动带上 cron 与 assets）
 echo "<你的TRIGGER_SECRET>" | npx wrangler secret put TRIGGER_SECRET
 echo "<你的ADMIN_PASSWORD>" | npx wrangler secret put ADMIN_PASSWORD
+git checkout -- wrangler.jsonc                                 # 还原占位符
 ```
+
+Windows PowerShell 下 sed 不可用，可改用 Git Bash 执行上述命令，或用 `npx wrangler deploy --config` 配合临时配置文件。
 
 ### 部署后验证
 
