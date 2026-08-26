@@ -8,6 +8,7 @@
     "dev": "wrangler dev --test-scheduled",
     "deploy": "wrangler deploy",
     "check:scrapers": "node scripts/check-scrapers.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "migrate:local": "wrangler d1 migrations apply ai-price-radar-db --local",
     "migrate:remote": "wrangler d1 migrations apply ai-price-radar-db --remote"
   },
