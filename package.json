@@ -13,6 +13,6 @@
     "migrate:remote": "wrangler d1 migrations apply ai-price-radar-db --remote"
   },
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.146.0"
   }
 }
